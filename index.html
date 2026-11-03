@@ -1,0 +1,1018 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<meta name="theme-color" content="#22303f"/>
+<meta name="description" content="Молитвенные нужды подросткового служения Vifania Teens — общий холодильник: вешайте магнит с тем, о чём молимся. Подписывайте нужду или оставляйте анонимно; удалять можно только свои."/>
+<title>Молитвенные нужды · Vifania Teens</title>
+<!-- ═══════════════════════════════════════════════════════════════════
+     МОЛИТВЕННЫЕ НУЖДЫ · служение Vifania Teens · один HTML-файл
+     Хостинг: Netlify (статика) + Supabase (общая база + realtime)
+
+     КАК ВЫЛОЖИТЬ — 3 шага:
+     1. Supabase (бесплатно): supabase.com → New project →
+        SQL Editor → вставить содержимое файла supabase-setup.sql → Run.
+     2. В этом файле, внизу в <script>, заполните две строки:
+          const SUPABASE_URL    = "https://\u0412\u0410\u0428-\u041f\u0420\u041e\u0415\u041a\u0422.supabase.co";
+          const SUPABASE_ANON_KEY = "eyJhbGciOi...";   (Settings → API)
+     3. Netlify: app.netlify.com/drop → перетащить эту папку. Готово.
+
+     Без Supabase приложение тоже работает — демо-режим
+     (данные хранятся только в этом браузере, localStorage).
+     ═══════════════════════════════════════════════════════════════════ -->
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><circle cx='32' cy='32' r='26' fill='%23ff7a59'/><circle cx='24' cy='23' r='9' fill='%23ffffff' opacity='.55'/></svg>"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@500;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --bg1:#3b5168;--bg2:#22303f;
+  --cream:#f7f0df;--ink:#2c3540;--ink2:#6b7683;
+  --accent:#ff7a59;--accent-d:#f4552e;
+  --board:#fbf8f1;--line:#ece7d9;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{
+  font-family:'Nunito',system-ui,-apple-system,'Segoe UI',sans-serif;
+  color:var(--ink);overflow:hidden;background:var(--bg2);
+  -webkit-font-smoothing:antialiased;
+}
+button{font-family:inherit;cursor:pointer}
+h1,h2,h3{font-family:'Comfortaa','Nunito',cursive}
+
+/* ═══════════ КУХНЯ — стартовый экран ═══════════ */
+#kitchen{
+  position:fixed;inset:0;z-index:1;overflow:hidden;
+  background:radial-gradient(1100px 640px at 50% -8%,#4b657f 0%,var(--bg1) 46%,var(--bg2) 100%);
+  transition:opacity .5s ease,visibility 0s linear 0s;
+}
+#kitchen.hidden{opacity:0;visibility:hidden;pointer-events:none;
+  transition:opacity .5s ease,visibility 0s linear .5s}
+#kitchen::after{ /* пол */
+  content:'';position:absolute;left:0;right:0;bottom:0;height:16vh;pointer-events:none;
+  background:linear-gradient(180deg,rgba(16,24,32,0) 0%,rgba(16,24,32,.35) 60%,rgba(16,24,32,.5) 100%);
+}
+#scene{
+  position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  transform-origin:50% 60%;will-change:transform;
+  transition:transform .95s cubic-bezier(.72,0,.28,1),filter .95s ease;
+}
+#kitchen.zoom #scene{transform:scale(11);filter:blur(3px) brightness(1.12);
+  transition-duration:1.25s,1.25s}
+#kitchen.zoom .fadeable{opacity:0;transform:translateY(-26px);pointer-events:none}
+.fadeable{transition:opacity .45s ease,transform .45s ease}
+
+#fridgeWrap{position:relative;display:flex;margin:clamp(18px,3.5vh,38px) 0 clamp(20px,4vh,40px)}
+.glow{position:absolute;top:50%;left:50%;translate:-50% -50%;
+  width:min(620px,135vw);aspect-ratio:1;border-radius:50%;pointer-events:none;
+  background:radial-gradient(circle,rgba(255,213,150,.17) 0%,rgba(255,213,150,0) 62%)}
+
+#fridge{position:relative;width:min(232px,52vw);aspect-ratio:10/20.6;
+  border-radius:clamp(14px,3vw,24px);
+  background:linear-gradient(112deg,#fdf9ec 0%,#f5edda 52%,#e7dcc2 100%);
+  box-shadow:inset 0 2px 0 rgba(255,255,255,.75),inset -6px 0 12px -8px rgba(0,0,0,.18),
+    -18px 26px 54px -20px rgba(10,16,24,.65),0 5px 0 #d8cdb1}
+#fridge::before,#fridge::after{content:'';position:absolute;left:7%;right:7%;height:2px;border-radius:2px}
+#fridge::before{top:30.5%;background:rgba(90,74,45,.14)}
+#fridge::after{top:60.5%;background:rgba(90,74,45,.10)}
+.handle{position:absolute;right:6.5%;width:10px;border-radius:9px;
+  background:linear-gradient(180deg,#eef2f6,#a8b2bd);
+  box-shadow:0 3px 5px rgba(0,0,0,.28),inset 0 1px 0 #fff}
+.handle.h1{top:9%;height:16%}.handle.h2{top:37%;height:18%}
+.foot{position:absolute;bottom:-13px;width:28px;height:15px;border-radius:0 0 9px 9px;
+  background:linear-gradient(180deg,#9aa1a9,#767d86)}
+.foot.l{left:7%}.foot.r{right:7%}
+
+/* декоративные магниты на дверце */
+.dm{position:absolute}
+.dm.note{left:14%;top:39%;width:62px;padding:9px 6px 7px;background:#fffdf3;border-radius:4px;
+  box-shadow:0 8px 14px -6px rgba(20,28,36,.35);transform:rotate(-7deg);
+  font-size:10.5px;font-weight:700;color:#5a6470;text-align:center;letter-spacing:.02em}
+.dm.note::before{content:'';position:absolute;top:-7px;left:50%;translate:-50% 0;width:14px;height:14px;
+  border-radius:50%;background:radial-gradient(circle at 32% 28%,rgba(255,255,255,.85),rgba(255,255,255,0) 58%),var(--accent);
+  box-shadow:0 2px 4px rgba(0,0,0,.3)}
+.dm.heart{left:64%;top:47%;width:22px;height:22px;background:#ff6b6b;transform:rotate(45deg);
+  border-radius:0 0 3px 0;box-shadow:0 6px 12px -4px rgba(20,28,36,.3)}
+.dm.heart::before,.dm.heart::after{content:'';position:absolute;width:22px;height:22px;border-radius:50%;background:#ff6b6b}
+.dm.heart::before{left:-11px}.dm.heart::after{top:-11px}
+.dm.dotm{left:70%;top:67%;width:16px;height:16px;border-radius:50%;
+  background:radial-gradient(circle at 32% 28%,rgba(255,255,255,.9),rgba(255,255,255,0) 60%),#4f9ee8;
+  box-shadow:0 4px 8px -2px rgba(20,28,36,.4)}
+.dm.dotm2{left:22%;top:71%;width:12px;height:12px;border-radius:50%;
+  background:radial-gradient(circle at 32% 28%,rgba(255,255,255,.9),rgba(255,255,255,0) 60%),#59c08a;
+  box-shadow:0 4px 8px -2px rgba(20,28,36,.4)}
+
+#landing{display:flex;flex-direction:column;align-items:center;text-align:center;padding:0 18px}
+.eyebrow{font-size:11.5px;font-weight:800;letter-spacing:.3em;text-transform:uppercase;color:rgba(247,240,223,.5);margin-bottom:14px}
+#landing h1{font-size:clamp(30px,6vw,52px);font-weight:700;color:var(--cream);
+  letter-spacing:.01em;text-shadow:0 4px 24px rgba(0,0,0,.35)}
+#landing .sub{margin-top:10px;max-width:540px;font-size:clamp(13.5px,2vw,16.5px);line-height:1.5;
+  color:rgba(247,240,223,.72);font-weight:600}
+
+#enterBtn{margin-top:clamp(16px,3.2vh,32px);border:none;border-radius:999px;color:#fff;
+  font-family:'Comfortaa','Nunito',cursive;font-weight:700;font-size:clamp(16px,2.3vw,20px);
+  padding:17px 38px;letter-spacing:.01em;
+  background:linear-gradient(135deg,#ff8a5c 0%,var(--accent) 45%,var(--accent-d) 100%);
+  box-shadow:0 14px 34px -10px rgba(244,85,46,.55),inset 0 1px 0 rgba(255,255,255,.4);
+  transition:transform .25s cubic-bezier(.3,1.4,.4,1),box-shadow .25s ease,opacity .45s ease;
+  animation:pulse 2.8s ease-in-out infinite}
+#enterBtn:hover{transform:translateY(-3px) scale(1.03);
+  box-shadow:0 20px 44px -12px rgba(244,85,46,.72),inset 0 1px 0 rgba(255,255,255,.4)}
+#enterBtn:active{transform:translateY(-1px) scale(.99)}
+@keyframes pulse{
+  0%,100%{box-shadow:0 14px 34px -10px rgba(244,85,46,.5),inset 0 1px 0 rgba(255,255,255,.4)}
+  50%{box-shadow:0 14px 48px -8px rgba(244,85,46,.85),inset 0 1px 0 rgba(255,255,255,.4)}}
+.hint{margin-top:13px;font-size:12.5px;color:rgba(247,240,223,.45);font-weight:600}
+
+#flash{position:fixed;inset:0;z-index:50;pointer-events:none;opacity:0;transition:opacity .5s ease;
+  background:radial-gradient(circle at 50% 55%,#ffffff 0%,#f2f6f9 55%,#e7edf2 100%)}
+#flash.on{opacity:1}
+
+/* ═══════════ ДОСКА НУЖД (внутри холодильника) ═══════════ */
+#board{position:fixed;inset:0;z-index:2;display:flex;flex-direction:column;
+  background:var(--board);
+  background-image:radial-gradient(rgba(44,53,64,.075) 1.1px,transparent 1.3px);
+  background-size:24px 24px;
+  opacity:0;transform:scale(1.055);
+  transition:opacity .55s ease,transform .65s cubic-bezier(.22,1,.36,1)}
+#board.show{opacity:1;transform:none}
+#board.hidden-view{display:none}
+
+#board header{display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+  padding:13px clamp(14px,3vw,30px);
+  background:rgba(255,253,247,.85);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--line)}
+#backBtn{border:1.5px solid var(--line);background:#fff;border-radius:999px;padding:9px 16px;
+  font-weight:800;font-size:13.5px;color:var(--ink2);transition:all .2s ease}
+#backBtn:hover{border-color:#d8d2c0;color:var(--ink);transform:translateX(-2px)}
+.hgroup{display:flex;align-items:center;gap:10px}
+.hgroup h2{font-size:clamp(16px,2.4vw,21px);font-weight:700}
+#count{background:#f1ecdd;border-radius:999px;padding:4px 12px;font-weight:800;font-size:12.5px;
+  color:var(--ink2);white-space:nowrap}
+.hright{margin-left:auto;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.badge{display:inline-flex;align-items:center;gap:7px;background:#fff;border:1px solid var(--line);
+  border-radius:999px;padding:6px 12px;font-size:11.5px;font-weight:700;color:var(--ink2);white-space:nowrap}
+.badge .d{width:7px;height:7px;border-radius:50%;flex:none}
+.badge .d.on{background:#2fb673;box-shadow:0 0 0 3px rgba(47,182,115,.18)}
+.badge .d.off{background:#f0a13c;box-shadow:0 0 0 3px rgba(240,161,60,.18)}
+#addBtn{border:none;border-radius:999px;padding:11px 20px;color:#fff;font-weight:800;font-size:14px;
+  background:linear-gradient(135deg,#ff8a5c,var(--accent) 50%,var(--accent-d));
+  box-shadow:0 10px 24px -8px rgba(244,85,46,.55),inset 0 1px 0 rgba(255,255,255,.35);
+  transition:transform .2s cubic-bezier(.3,1.4,.4,1),box-shadow .2s;white-space:nowrap}
+#addBtn:hover{transform:translateY(-2px);
+  box-shadow:0 14px 30px -8px rgba(244,85,46,.7),inset 0 1px 0 rgba(255,255,255,.35)}
+
+#wall{flex:1;overflow-y:auto;padding:clamp(18px,3.5vw,34px) clamp(14px,3vw,30px)
+  calc(70px + env(safe-area-inset-bottom));
+  display:flex;flex-wrap:wrap;gap:clamp(16px,2.4vw,24px);
+  align-content:flex-start;justify-content:center}
+.empty{flex:1 1 100%;margin-top:7vh;text-align:center;color:var(--ink2)}
+.empty .big{font-family:'Comfortaa','Nunito',cursive;font-weight:700;font-size:21px;color:#8b93a0}
+.empty p{margin:8px auto 0;font-size:14px;max-width:320px;line-height:1.5}
+.loading{flex:1 1 100%;margin-top:7vh;text-align:center;color:var(--ink2);
+  font-weight:700;font-size:14px;animation:blink 1.2s ease-in-out infinite}
+@keyframes blink{50%{opacity:.35}}
+
+/* магнит-стикер */
+.sticker{position:relative;width:176px;min-height:138px;padding:24px 14px 12px;
+  border-radius:5px 16px 7px 15px;
+  background:linear-gradient(170deg,rgba(255,255,255,.42),rgba(255,255,255,0) 46%),var(--c,#ffe28a);
+  transform:rotate(var(--rot,0deg));
+  box-shadow:0 12px 20px -9px rgba(31,42,52,.4),inset 0 1px 0 rgba(255,255,255,.5);
+  animation:pop .5s cubic-bezier(.3,1.55,.45,1) backwards;
+  transition:transform .2s ease,box-shadow .2s ease,opacity .3s ease}
+.sticker:hover{transform:rotate(var(--rot,0deg)) translateY(-5px) scale(1.025);z-index:6;
+  box-shadow:0 20px 30px -10px rgba(31,42,52,.5),inset 0 1px 0 rgba(255,255,255,.5)}
+.sticker.bye{opacity:0;transform:rotate(var(--rot,0deg)) scale(.45) rotate(14deg);pointer-events:none}
+.sticker .dot{position:absolute;top:-7px;left:50%;translate:-50% 0;width:16px;height:16px;border-radius:50%;
+  background:radial-gradient(circle at 32% 28%,rgba(255,255,255,.9),rgba(255,255,255,0) 58%),#525d69;
+  box-shadow:0 3px 6px rgba(20,28,36,.35)}
+.sticker .txt{font-size:15.5px;font-weight:600;line-height:1.38;word-break:break-word;white-space:pre-wrap}
+.sticker .when{margin-top:9px;font-size:11px;font-weight:700;opacity:.5}
+.sticker .who{margin-top:7px;font-size:11.5px;font-weight:800;opacity:.62}
+.sticker .del{position:absolute;top:5px;right:5px;width:23px;height:23px;border:none;border-radius:50%;
+  background:rgba(44,53,64,.13);color:#414c58;font-size:15px;font-weight:800;line-height:1;
+  display:grid;place-items:center;opacity:0;
+  transition:opacity .18s ease,background .18s ease,transform .18s ease}
+.sticker:hover .del{opacity:1}
+.sticker .del:hover{background:#e35d4f;color:#fff;transform:scale(1.12)}
+@media (hover:none){.sticker .del{opacity:.8}}
+@keyframes pop{
+  0%{opacity:0;transform:scale(.25) rotate(calc(var(--rot,0deg) - 16deg))}
+  100%{opacity:1;transform:scale(1) rotate(var(--rot,0deg))}}
+
+/* ═══════════ МОДАЛКА ═══════════ */
+#modalWrap{position:fixed;inset:0;z-index:60;display:grid;place-items:center;padding:18px;
+  background:rgba(18,26,34,.5);backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px);
+  opacity:0;pointer-events:none;transition:opacity .3s ease}
+#modalWrap.open{opacity:1;pointer-events:auto}
+#modal{width:min(430px,100%);background:#fffdf7;border-radius:22px;padding:24px 22px 20px;
+  box-shadow:0 30px 70px -20px rgba(10,16,24,.5);
+  transform:scale(.86) translateY(16px);transition:transform .38s cubic-bezier(.3,1.4,.4,1)}
+#modalWrap.open #modal{transform:none}
+#modal h3{font-size:19px;margin-bottom:14px}
+#needInput{width:100%;min-height:92px;resize:none;border:2px solid var(--line);border-radius:14px;
+  padding:12px 14px;font:600 15.5px/1.45 'Nunito',sans-serif;color:var(--ink);background:#fff;
+  outline:none;transition:border-color .2s}
+#needInput:focus{border-color:var(--accent)}
+#needInput.err{border-color:#e35d4f;animation:shake .4s ease}
+@keyframes shake{25%{translate:-5px 0}50%{translate:5px 0}75%{translate:-3px 0}}
+.chars{text-align:right;font-size:11.5px;font-weight:700;color:#a9b0ba;margin-top:5px}
+.alabel{font-size:11px;font-weight:800;color:var(--ink2);margin:12px 0 8px;text-transform:uppercase;letter-spacing:.08em}
+.authorRow{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.chip{border:1.5px solid var(--line);background:#fff;border-radius:999px;padding:8px 15px;font-weight:800;font-size:12.5px;color:var(--ink2);transition:all .2s}
+.chip:hover{border-color:#d8d2c0}
+.chip.sel{border-color:var(--accent);color:var(--accent-d);background:#fff4f0}
+#nameInput{display:none;flex:1;min-width:150px;border:2px solid var(--line);border-radius:999px;padding:8px 15px;font:700 13.5px 'Nunito',sans-serif;color:var(--ink);outline:none;transition:border-color .2s;background:#fff}
+#nameInput.show{display:block}
+#nameInput:focus{border-color:var(--accent)}
+#nameInput.err{border-color:#e35d4f;animation:shake .4s ease}
+.swatches{display:flex;gap:10px;margin:10px 0 18px}
+.sw{width:30px;height:30px;border-radius:50%;border:none;
+  transition:transform .18s cubic-bezier(.3,1.5,.4,1),box-shadow .18s ease}
+.sw:hover{transform:scale(1.15)}
+.sw.sel{box-shadow:0 0 0 3px #fffdf7,0 0 0 5.5px var(--ink2);transform:scale(1.08)}
+.mrow{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
+#cancelBtn{border:1.5px solid var(--line);background:#fff;border-radius:999px;padding:11px 18px;
+  font-weight:800;font-size:13.5px;color:var(--ink2);transition:all .2s}
+#cancelBtn:hover{color:var(--ink);border-color:#d8d2c0}
+#saveBtn{border:none;border-radius:999px;padding:11px 22px;color:#fff;font-weight:800;font-size:13.5px;
+  background:linear-gradient(135deg,#ff8a5c,var(--accent) 50%,var(--accent-d));
+  box-shadow:0 8px 20px -6px rgba(244,85,46,.5);transition:transform .2s,opacity .2s}
+#saveBtn:hover{transform:translateY(-2px)}
+#saveBtn:disabled{opacity:.55;cursor:default;transform:none}
+
+/* ═══════════ КАЛЕНДАРЬ МОЛИТВЫ ═══════════ */
+#calBtn{border:1.5px solid var(--line);background:#fff;border-radius:999px;padding:11px 18px;
+  font-weight:800;font-size:13.5px;color:var(--ink2);transition:all .2s;white-space:nowrap}
+#calBtn:hover{border-color:var(--accent);color:var(--accent-d);background:#fff4f0;transform:translateY(-2px)}
+#calWrap{position:fixed;inset:0;z-index:55;display:grid;place-items:center;padding:14px;
+  background:rgba(18,26,34,.55);backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px);
+  opacity:0;pointer-events:none;transition:opacity .3s ease}
+#calWrap.open{opacity:1;pointer-events:auto}
+#cal{width:min(600px,100%);max-height:min(92vh,900px);display:flex;flex-direction:column;
+  background:#fffdf7;border-radius:22px;overflow:hidden;
+  box-shadow:0 30px 70px -20px rgba(10,16,24,.5);
+  transform:scale(.92) translateY(20px);transition:transform .38s cubic-bezier(.3,1.4,.4,1)}
+#calWrap.open #cal{transform:none}
+.calHead{display:flex;align-items:flex-start;gap:12px;padding:18px 18px 13px;border-bottom:1px solid var(--line)}
+.calHead h3{font-size:19px}
+.calSub{font-size:12px;color:var(--ink2);font-weight:600;margin-top:3px;line-height:1.4}
+#confBadge{margin-left:auto;flex:none}
+#calClose{flex:none;width:34px;height:34px;border:none;border-radius:50%;background:#f1ecdd;
+  color:var(--ink2);font-size:19px;font-weight:800;line-height:1;transition:all .2s}
+#calClose:hover{background:#e35d4f;color:#fff;transform:rotate(90deg)}
+.calNameRow{display:flex;align-items:center;gap:10px;padding:11px 18px;border-bottom:1px dashed var(--line)}
+.calNameRow .alabel{margin:0}
+#calName{flex:1;min-width:0;border:2px solid var(--line);border-radius:999px;padding:8px 14px;
+  font:700 13.5px 'Nunito',sans-serif;color:var(--ink);outline:none;background:#fff;transition:border-color .2s}
+#calName:focus{border-color:var(--accent)}
+#calName.err{border-color:#e35d4f;animation:shake .4s ease}
+#calBody{overflow-y:auto;padding:13px 14px calc(18px + env(safe-area-inset-bottom))}
+.calLegend{font-size:12px;color:var(--ink2);font-weight:600;line-height:1.5;padding:0 6px 12px}
+.day{background:#fff;border:1px solid var(--line);border-radius:16px;margin-bottom:10px;overflow:hidden;
+  transition:border-color .2s,box-shadow .2s}
+.day.today{border-color:var(--accent);box-shadow:0 8px 22px -12px rgba(244,85,46,.45)}
+.day.conf{border-color:#2fb673;box-shadow:0 8px 22px -12px rgba(47,182,115,.45)}
+.dayHead{display:flex;align-items:center;gap:9px;padding:11px 13px;cursor:pointer;user-select:none}
+.dayHead .dname{font-weight:800;font-size:13.5px;text-transform:capitalize}
+.dayHead .ddate{font-weight:700;font-size:12px;color:var(--ink2)}
+.confChip{background:#d9f3e5;color:#1d7a4d;border-radius:999px;padding:2.5px 9px;
+  font-size:10.5px;font-weight:800;white-space:nowrap}
+.cov{margin-left:auto;background:#f1ecdd;border-radius:999px;padding:3px 10px;
+  font-size:11.5px;font-weight:800;color:var(--ink2);white-space:nowrap}
+.cov.full{background:#d9f3e5;color:#1d7a4d}
+.dayHead .arrow{font-size:10px;color:var(--ink2);transition:transform .25s}
+.day.closed .arrow{transform:rotate(180deg)}
+.day.closed .slots{display:none}
+.slots{display:grid;grid-template-columns:repeat(auto-fill,minmax(122px,1fr));gap:8px;padding:2px 12px 13px}
+.slot{position:relative;border:1.5px dashed #d8d2c0;border-radius:12px;padding:8px 7px 7px;text-align:center;
+  background:#fffdf7;font-weight:800;font-size:12px;color:var(--ink2);transition:all .18s}
+.slot .t{display:block;letter-spacing:.02em}
+.slot .n{display:block;margin-top:2px;font-size:10.5px;font-weight:700;color:#b3b9c2;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.slot:not(.taken):not(.past):hover{border-color:var(--accent);color:var(--accent-d);
+  background:#fff4f0;transform:translateY(-1px)}
+.slot:not(.taken):not(.past):hover .n{color:var(--accent)}
+.slot.taken{border-style:solid;border-color:#cfe8d6;background:#f2f9f3;color:#3d5c49;cursor:default}
+.slot.taken .n{color:#4e7d61}
+.slot.mine{border-color:var(--accent);background:#fff1ec;color:var(--accent-d)}
+.slot.mine .n{color:var(--accent-d)}
+.slot.past{opacity:.42;cursor:default}
+.slot .x{position:absolute;top:4px;right:4px;width:18px;height:18px;border-radius:50%;
+  background:rgba(227,93,79,.16);color:#c74a3d;font-size:12.5px;font-weight:800;line-height:1;
+  display:grid;place-items:center;transition:all .15s}
+.slot .x:hover{background:#e35d4f;color:#fff;transform:scale(1.12)}
+.calClosed{text-align:center;color:var(--ink2);font-weight:700;font-size:14px;padding:36px 12px}
+@media (max-width:480px){
+  .slots{grid-template-columns:repeat(2,1fr)}
+  .calHead{flex-wrap:wrap}
+  #confBadge{order:3;margin-left:0}
+}
+
+#toast{position:fixed;left:50%;bottom:26px;z-index:70;translate:-50% 14px;opacity:0;pointer-events:none;
+  background:rgba(38,48,58,.95);color:#f5f2ea;font-size:13.5px;font-weight:700;
+  padding:11px 20px;border-radius:999px;max-width:88vw;text-align:center;
+  box-shadow:0 12px 30px -8px rgba(10,16,24,.5);transition:all .35s cubic-bezier(.3,1.3,.4,1)}
+#toast.show{opacity:1;translate:-50% 0}
+
+@media (max-width:620px){
+  .badge .t{display:none}
+  .sticker{width:calc(50% - 12px);min-width:138px}
+}
+@media (max-height:860px){
+  #landing h1{font-size:clamp(26px,4.6vw,40px)}
+  #landing .sub{font-size:13.5px;max-width:520px}
+  .eyebrow{margin-bottom:10px;letter-spacing:.24em}
+  #fridge{width:min(196px,42vw)}
+  #fridgeWrap{margin:12px 0 16px}
+  #enterBtn{margin-top:clamp(10px,1.8vh,18px);padding:14px 32px;font-size:clamp(15px,2vw,17px)}
+  .hint{margin-top:9px}
+}
+@media (max-height:700px){
+  #fridge{width:min(165px,36vw)}
+  #landing h1{font-size:clamp(23px,4vw,32px)}
+  #landing .sub{display:none}
+  .eyebrow{display:none}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation-duration:.01ms!important;transition-duration:.01ms!important}
+}
+
+.prayerBanner{padding:12px 18px;background:#fff0cd;color:#694919;border-bottom:1px solid #ead5a4;font-size:14px;font-weight:800;text-align:center;line-height:1.45;flex-shrink:0}
+#kitchen>.prayerBanner{position:absolute;top:0;left:0;right:0;z-index:3}
+#scene{padding-top:58px}
+.prayerForm{padding:0 5px 16px;display:grid;gap:12px}
+.prayerForm label{display:grid;gap:5px;font-size:13px;font-weight:800}
+.prayerForm input,.prayerForm select{width:100%;min-width:0;border:2px solid var(--line);border-radius:12px;background:white;padding:10px;font:inherit;color:var(--ink)}
+.prayerChoices{display:grid;grid-template-columns:1fr 1fr;gap:8px;border:0}
+.prayerChoices label{display:flex;align-items:flex-start;padding:12px;border:1px solid var(--line);border-radius:12px;line-height:1.4;cursor:pointer}
+.prayerChoices label:has(input:checked){border-color:var(--accent);background:#fff4f0}
+.prayerChoices input{width:auto;margin-top:3px}
+.timeFields{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+[hidden]{display:none!important}
+#joinPrayer{border:0;border-radius:999px;background:var(--accent-d);color:white;padding:12px;font:800 14px 'Nunito',sans-serif}
+#joinPrayer:disabled{opacity:.5}
+.prayerEntry{padding:12px;border-top:1px solid var(--line);font-size:13px;line-height:1.5;overflow-wrap:anywhere}
+.prayerEntry strong{display:block}.prayerEntry button{float:right;border:1px solid var(--line);border-radius:20px;padding:4px 10px;background:#fff;color:var(--ink2)}
+#prayerError{color:#b53825;font-size:13px;font-weight:700}
+@media(max-width:480px){.calHead{flex-wrap:wrap}.calHead>div{flex:1;min-width:180px}#confBadge{order:3;margin-left:0}.prayerChoices{grid-template-columns:1fr}.prayerBanner{font-size:12px;padding:9px 12px}}
+</style>
+</head>
+<body>
+<!-- ═══ Кухня / стартовый экран ═══ -->
+<div id="kitchen"><div class="prayerBanner">🙏 Не забудь вспомнить предстоящую конференцию в своей молитве.</div>
+  <div id="scene">
+    <div id="landing" class="fadeable">
+      <div class="eyebrow">vifania teens · подростковое служение</div>
+      <h1>Молитвенные нужды</h1>
+      <p class="sub">Общий холодильник нашей команды: вешайте магнит с тем, о чём нужно молиться, и молитесь о нуждах других. Подписывайте нужду — или оставьте анонимно.</p>
+    </div>
+    <div id="fridgeWrap">
+      <div class="glow"></div>
+      <div id="fridge">
+        <div class="handle h1"></div><div class="handle h2"></div>
+        <div class="foot l"></div><div class="foot r"></div>
+        <div class="dm note">молимся</div>
+        <div class="dm heart"></div>
+        <div class="dm dotm"></div>
+        <div class="dm dotm2"></div>
+      </div>
+    </div>
+    <button id="enterBtn" class="fadeable">Перейти к нуждам</button>
+    <p class="hint fadeable">нажмите — и мы подлетим к холодильнику</p>
+  </div>
+</div>
+
+<!-- ═══ Доска нужд (внутри холодильника) ═══ -->
+<div id="board" class="hidden-view">
+  <header>
+    <button id="backBtn">&#8592; На кухню</button>
+    <div class="hgroup">
+      <h2>Молитвенные нужды</h2>
+      <span id="count">0</span>
+    </div>
+    <div class="hright">
+      <span class="badge" id="modeBadge"><span class="d off"></span><span class="t">демо-режим</span></span>
+      <button id="calBtn">🙏 График молитвы</button>
+      <button id="addBtn">+ Повесить нужду</button>
+    </div>
+  </header>
+<div class="prayerBanner">🙏 Не забудь вспомнить предстоящую конференцию в своей молитве.</div>
+  <main id="wall">
+    <div class="loading" id="loading">Загружаю магниты…</div>
+  </main>
+</div>
+
+<!-- ═══ Модалка новой нужды ═══ -->
+<div id="modalWrap">
+  <div id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <h3 id="modalTitle">Новая молитвенная нужда</h3>
+    <textarea id="needInput" maxlength="140" placeholder="О чём молимся? Например: за предстоящие экзамены, за здоровье бабушки, за новых ребят в служении…"></textarea>
+    <div class="chars"><span id="charLeft">140</span> осталось</div>
+    <div class="swatches" id="swatches"></div>
+    <div class="alabel">От кого эта нужда</div>
+    <div class="authorRow">
+      <button class="chip sel" id="chipSign">Подписать</button>
+      <button class="chip" id="chipAnon">Анонимно</button>
+      <input id="nameInput" class="show" maxlength="30" placeholder="Ваше имя" autocomplete="off"/>
+    </div>
+    <div class="mrow">
+      <button id="cancelBtn">Отмена</button>
+      <button id="saveBtn">Повесить на холодильник</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ Календарь молитвы (до конференции 14 ноября) ═══ -->
+<div id="calWrap">
+  <div id="cal" role="dialog" aria-modal="true" aria-labelledby="calTitle">
+    <div class="calHead">
+      <div>
+        <h3 id="calTitle">График молитвы</h3>
+        <div class="calSub">Выбери, как тебе удобно молиться за конференцию</div>
+      </div>
+      <span class="badge" id="confBadge">…</span>
+      <button id="calClose" aria-label="Закрыть">×</button>
+    </div>
+    <div class="calNameRow">
+      <span class="alabel">Ты:</span>
+      <input id="calName" maxlength="30" placeholder="твоё имя — команда его увидит" autocomplete="off"/>
+    </div>
+    <div id="calBody">
+      <form id="prayerForm" class="prayerForm">
+<fieldset class="prayerChoices"><legend class="alabel">Как будешь молиться?</legend>
+<label><input type="radio" name="prayerMode" value="sphere" checked> За определённую сферу в течение дня</label>
+<label><input type="radio" name="prayerMode" value="time"> За всю конференцию в выбранное время</label></fieldset>
+<label>День<input id="prayerDay" type="date" required></label>
+<label id="sphereField">За какую сферу?<input id="prayerSphere" maxlength="60" placeholder="Например: за спикеров, подростков, команду" required></label>
+<div id="timeFields" class="timeFields" hidden><label>Начало<input id="prayerTime" type="time"></label><label>Сколько минут<input id="prayerDuration" type="number" min="1" max="1440" step="1" placeholder="Например: 15"></label></div>
+<p class="calSub" id="prayerHelp">Вспоминай выбранную сферу в молитве в течение дня — без привязки к часам.</p>
+<div id="prayerError" role="alert"></div><button id="joinPrayer" type="submit">Присоединиться к молитве</button>
+</form><div class="calLegend">Здесь видно, кто и за что молится. В одно время могут молиться несколько человек. Время указано по местным часам участника.</div>
+      <div id="calDays"></div>
+    </div>
+  </div>
+</div>
+
+<div id="toast" role="status"></div>
+<div id="flash"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+'use strict';
+/* ═══════════ SUPABASE — ВСТАВЬТЕ СВОИ ДАННЫЕ СЮДА ═══════════
+   Supabase → Settings → API:
+     Project URL  →  SUPABASE_URL   (https://xxxx.supabase.co — без /rest/v1)
+     anon public  →  SUPABASE_ANON_KEY
+   Если оставить пустым — работает демо-режим
+   (данные хранятся только в этом браузере, localStorage).     */
+const SUPABASE_URL      = "https://vndwgyogelrjkrxsggco.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_wgSfoJHxwZQZeIaKlDsJOQ_bt7uYdFO";
+
+const LS_KEY  = 'fridge-needs-v1';
+const PALETTE = ['#ffe28a','#ffc9c9','#c9f0d8','#cde4ff','#e9d8ff','#ffd9a8'];
+const MAXLEN  = 140;
+
+/* ── график молитвы: до конференции 14 ноября ── */
+const CONF_DAY      = new Date(2026, 10, 14);   /* 14 ноября 2026 */
+const CAL_START     = new Date(2026, 10, 2);    /* первый день графика */
+const SLOTS_PER_DAY = 12;                        /* 12 слотов по 2 часа */
+const LS_CAL_KEY    = 'fridge-prayer-slots-v1';
+
+/* ?sb_url=…&sb_key=… в адресе страницы тоже подключают Supabase (удобно для теста) */
+const qp = new URLSearchParams(location.search);
+let rawUrl = String(qp.get('sb_url') || SUPABASE_URL || '').trim();
+let rawKey = String(qp.get('sb_key') || SUPABASE_ANON_KEY || '').trim();
+
+/* если URL и ключ перепутали местами — меняем сами */
+if (/^(ey|sb_)/.test(rawUrl) && /^https?:\/\//.test(rawKey)) {
+  const t = rawUrl; rawUrl = rawKey; rawKey = t;
+}
+/* чистим адрес: кавычки, слэш на конце и случайный хвост /rest/v1
+   (частая причина ошибки «Invalid path specified in request URL») */
+rawUrl = rawUrl.replace(/^["']+|["']+$/g, '')
+               .replace(/\/rest\/v1\/?$/i, '')
+               .replace(/\/+$/, '');
+rawKey = rawKey.replace(/^["']+|["']+$/g, '').replace(/\s+/g, '');
+
+const CFG_URL = rawUrl;
+const CFG_KEY = rawKey;
+
+let sb = null;
+if (CFG_URL && CFG_KEY && window.supabase && window.supabase.createClient) {
+  try { sb = window.supabase.createClient(CFG_URL, CFG_KEY); }
+  catch (e) { console.warn('Supabase init failed:', e); }
+}
+
+/* ── DOM ── */
+const $ = id => document.getElementById(id);
+const kitchen = $('kitchen'), scene = $('scene'), fridge = $('fridge'),
+      board = $('board'), wall = $('wall'), flash = $('flash'),
+      enterBtn = $('enterBtn'), backBtn = $('backBtn'), addBtn = $('addBtn'),
+      modalWrap = $('modalWrap'), needInput = $('needInput'), saveBtn = $('saveBtn'),
+      cancelBtn = $('cancelBtn'), swatches = $('swatches'), charLeft = $('charLeft'),
+      countEl = $('count'), modeBadge = $('modeBadge'), toastEl = $('toast'),
+      nameInput = $('nameInput'), chipSign = $('chipSign'), chipAnon = $('chipAnon'),
+      calBtn = $('calBtn'), calWrap = $('calWrap'), calDays = $('calDays'),
+      calName = $('calName'), calClose = $('calClose'), confBadge = $('confBadge');
+
+let needs = [];        // { id, text, color, rot, created_at }
+let wallEmpty = null;  // пустое состояние
+let inBoard = false;
+let selColor = PALETTE[Math.floor(Math.random() * PALETTE.length)];
+
+/* ── утилиты ── */
+const uid = () => (crypto.randomUUID
+  ? crypto.randomUUID()
+  : 'id-' + Date.now() + '-' + Math.random().toString(36).slice(2, 10));
+const isUuid = s => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s || '');
+
+/* ── identity: кто я на этом холодильнике (хранится в браузере) ── */
+const ID_KEY = 'fridge-identity-v1';
+let my = (function () {
+  try { return JSON.parse(localStorage.getItem(ID_KEY) || 'null'); } catch (e) { return null; }
+})();
+if (!my || !my.uid) {
+  my = { uid: uid(), name: '', mode: 'sign' };
+  try { localStorage.setItem(ID_KEY, JSON.stringify(my)); } catch (e) {}
+}
+const isMine = n => !!n && n.owner_id === my.uid;   // удалять можно только свои
+function saveIdentity() {
+  try { localStorage.setItem(ID_KEY, JSON.stringify(my)); } catch (e) {}
+}
+
+function plural(n) {
+  const a = n % 10, b = n % 100;
+  if (a === 1 && b !== 11) return 'нужда';
+  if (a >= 2 && a <= 4 && (b < 12 || b > 14)) return 'нужды';
+  return 'нужд';
+}
+function fmtDate(s) {
+  try { return new Date(s).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' }); }
+  catch (e) { return ''; }
+}
+let toastT;
+function toast(msg) {
+  toastEl.textContent = msg;
+  toastEl.classList.add('show');
+  clearTimeout(toastT);
+  toastT = setTimeout(() => toastEl.classList.remove('show'), 2800);
+}
+
+/* подсказки к частым ошибкам подключения */
+function errHint(e) {
+  const m = String((e && e.message) || e || '');
+  if (/invalid path/i.test(m))
+    return 'Проверьте SUPABASE_URL — нужен адрес вида https://xxxx.supabase.co (без /rest/v1 на конце)';
+  if (/does not exist/i.test(m))
+    return 'Таблица не создана — выполните supabase-setup.sql в Supabase SQL Editor';
+  if (/JWT|api ?key|apikey|invalid key/i.test(m))
+    return 'Supabase не принял ключ — нужен anon public (Settings → API)';
+  if (/failed to fetch|networkerror|load failed/i.test(m))
+    return 'Нет связи с Supabase — проверьте Project URL в файле';
+  return m;
+}
+
+function updateCount() {
+  countEl.textContent = needs.length + ' ' + plural(needs.length);
+  ensureEmpty();
+}
+function ensureEmpty() {
+  const has = needs.length > 0;
+  if (has && wallEmpty) { wallEmpty.remove(); wallEmpty = null; }
+  if (!has && !wallEmpty && !document.getElementById('loading')) {
+    wallEmpty = document.createElement('div');
+    wallEmpty.className = 'empty';
+    wallEmpty.innerHTML = '<div class="big">Пока пусто</div>' +
+      '<p>Нажмите «Повесить нужду» — и первый молитвенный магнит появится на холодильнике.</p>';
+    wall.appendChild(wallEmpty);
+  }
+}
+
+/* ── рендер стикеров ── */
+function stickerEl(n, delay) {
+  const el = document.createElement('div');
+  el.className = 'sticker';
+  el.dataset.id = n.id;
+  el.style.setProperty('--c', n.color || '#ffe28a');
+  el.style.setProperty('--rot', (n.rot || 0) + 'deg');
+  if (delay) el.style.animationDelay = delay + 'ms';
+
+  const dot = document.createElement('div'); dot.className = 'dot';
+  const txt = document.createElement('div'); txt.className = 'txt'; txt.textContent = n.text;
+  const who = document.createElement('div'); who.className = 'who';
+  who.textContent = n.author ? '— ' + n.author : '— аноним';
+  const when = document.createElement('div'); when.className = 'when'; when.textContent = fmtDate(n.created_at);
+
+  el.append(dot, txt, who, when);
+  if (isMine(n)) {                        // кнопка удаления только у своих нужд
+    const del = document.createElement('button');
+    del.className = 'del'; del.textContent = '×';
+    del.title = 'Удалить свою нужду'; del.setAttribute('aria-label', 'Удалить свою нужду');
+    el.appendChild(del);
+  }
+  return el;
+}
+function renderAdd(n, delay) {
+  if (!n || !n.id) return;
+  if (isPrayer(n)) { upsertSlot(n); return; }
+  if (needs.some(x => x.id === n.id)) return;          // уже на стене
+  if (wallEmpty) { wallEmpty.remove(); wallEmpty = null; }
+  needs.push(n);
+  wall.appendChild(stickerEl(n, delay || 0));
+  updateCount();
+}
+function removeSticker(id) {
+  if (slots.some(x => x.id === id)) { slots = slots.filter(x => x.id !== id); renderCalSlots(); return; }
+  if (!needs.some(x => x.id === id)) return;
+  needs = needs.filter(x => x.id !== id);
+  const el = wall.querySelector('[data-id="' + id + '"]');
+  if (el) { el.classList.add('bye'); setTimeout(() => el.remove(), 380); }
+  updateCount();
+}
+function saveLocal() {
+  if (sb) return;
+  try { localStorage.setItem(LS_KEY, JSON.stringify(needs)); } catch (e) {}
+}
+
+/* ── API: Supabase или localStorage ── */
+async function fetchNeeds() {
+  if (sb) {
+    const { data, error } = await sb.from('needs')
+      .select('*').order('created_at', { ascending: true });
+    if (error) throw error;
+    return data || [];
+  }
+  try {
+    const arr = JSON.parse(localStorage.getItem(LS_KEY) || '[]');
+    /* старые записи без владельца считаем своими (демо-режим) */
+    return arr.map(x => x.owner_id ? x : Object.assign(x, { owner_id: my.uid, author: x.author || null }));
+  } catch (e) { return []; }
+}
+async function apiAdd(n) {
+  const real = isUuid(n.id);
+  if (!sb || real) renderAdd(n);                       // оптимистично рисуем
+  if (sb) {
+    const row = { text: n.text, color: n.color, rot: n.rot, author: n.author, owner_id: n.owner_id };
+    if (real) row.id = n.id;
+    const { error } = await sb.from('needs').insert(row);
+    if (error) { if (real) removeSticker(n.id); throw error; }
+    if (!real) await refetchAll();                     // редкий fallback без crypto.randomUUID
+  } else saveLocal();
+}
+async function apiDelete(id) {
+  removeSticker(id);                                   // оптимистично
+  if (sb) {
+    const { error } = await sb.from('needs').delete().eq('id', id);
+    if (error) { toast('Не получилось удалить: ' + error.message); return; }
+  } else saveLocal();
+}
+async function refetchAll() {
+  try {
+    const data = await fetchNeeds();
+    needs = [];
+    wall.querySelectorAll('.sticker').forEach(x => x.remove());
+    data.forEach(d => renderAdd(d));
+  } catch (e) { console.warn(e); }
+}
+
+/* ── realtime: изменения видят все сразу ── */
+function setBadge(online, warn) {
+  const d = modeBadge.querySelector('.d'), t = modeBadge.querySelector('.t');
+  d.className = 'd ' + (online ? 'on' : 'off');
+  t.textContent = online ? 'Supabase · синхронизация'
+                : (warn ? 'нет связи…' : 'демо-режим');
+  modeBadge.title = online
+    ? 'Изменения видны всем в реальном времени'
+    : 'Данные хранятся только в этом браузере';
+}
+function subscribe() {
+  if (!sb) return;
+  sb.channel('needs-realtime')
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'needs' },
+      p => renderAdd(p.new))
+    .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'needs' },
+      p => { if (p.old && p.old.id) removeSticker(p.old.id); })
+    .subscribe(status => {
+      if (status === 'SUBSCRIBED') setBadge(true);
+      else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') setBadge(false, true);
+    });
+}
+/* ── палитра в модалке ── */
+function buildSwatches() {
+  PALETTE.forEach(c => {
+    const b = document.createElement('button');
+    b.className = 'sw' + (c === selColor ? ' sel' : '');
+    b.style.background = c;
+    b.dataset.c = c;
+    b.setAttribute('aria-label', 'Цвет стикера');
+    b.onclick = () => {
+      selColor = c;
+      swatches.querySelectorAll('.sw').forEach(x => x.classList.toggle('sel', x === b));
+    };
+    swatches.appendChild(b);
+  });
+}
+
+/* ── автор: подписать или анонимно ── */
+let signMode = true;
+function setSignMode(signed) {
+  signMode = signed;
+  chipSign.classList.toggle('sel', signed);
+  chipAnon.classList.toggle('sel', !signed);
+  nameInput.classList.toggle('show', signed);
+  nameInput.classList.remove('err');
+  if (signed) setTimeout(() => nameInput.focus(), 60);
+}
+
+/* ── модалка ── */
+function openModal() {
+  modalWrap.classList.add('open');
+  needInput.value = '';
+  charLeft.textContent = MAXLEN;
+  setSignMode(my.mode !== 'anon');               // вспоминаем прошлый выбор
+  nameInput.value = my.name || '';
+  setTimeout(() => needInput.focus(), 130);
+}
+function closeModal() { modalWrap.classList.remove('open'); }
+
+async function submitNeed() {
+  if (saveBtn.disabled) return;
+  const text = needInput.value.trim();
+  if (!text) {
+    needInput.classList.add('err');
+    setTimeout(() => needInput.classList.remove('err'), 450);
+    needInput.focus();
+    return;
+  }
+  let name = nameInput.value.trim();
+  if (signMode && !name) {                       // подписанная нужда требует имя
+    nameInput.classList.add('err');
+    setTimeout(() => nameInput.classList.remove('err'), 450);
+    nameInput.focus();
+    return;
+  }
+  my.mode = signMode ? 'sign' : 'anon';          // запоминаем для следующих разов
+  if (signMode) my.name = name;
+  saveIdentity();
+
+  saveBtn.disabled = true;
+  const n = {
+    id: uid(),
+    text: text,
+    color: selColor,
+    rot: +(Math.random() * 7 - 3.5).toFixed(2),
+    created_at: new Date().toISOString(),
+    author: signMode ? name : null,
+    owner_id: my.uid
+  };
+  try {
+    await apiAdd(n);
+    closeModal();
+    toast('Повешено. Будем молиться');
+  } catch (e) {
+    console.error(e);
+    toast('Ошибка: ' + errHint(e));
+  } finally {
+    saveBtn.disabled = false;
+  }
+}
+
+/* ── зум к холодильнику и обратно ── */
+function enterKitchen() {
+  if (inBoard) return;
+  inBoard = true;
+  /* точка, в которую «влетает» камера — центр дверцы холодильника */
+  const fr = fridge.getBoundingClientRect(), sc = scene.getBoundingClientRect();
+  scene.style.transformOrigin =
+    (fr.left + fr.width / 2 - sc.left) + 'px ' + (fr.top + fr.height / 2 - sc.top) + 'px';
+
+  kitchen.classList.add('zoom');                            // полёт к холодильнику
+  setTimeout(() => flash.classList.add('on'), 800);         // вспышка у самой дверцы
+  setTimeout(() => {
+    board.classList.remove('hidden-view');
+    kitchen.classList.add('hidden');
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      board.classList.add('show');                          // дверца «открывается»
+      flash.classList.remove('on');
+    }));
+  }, 1350);
+}
+function leaveKitchen() {
+  if (!inBoard) return;
+  inBoard = false;
+  board.classList.remove('show');
+  setTimeout(() => board.classList.add('hidden-view'), 480);
+  kitchen.classList.remove('hidden');                       // обратный отлёт камеры
+  requestAnimationFrame(() => requestAnimationFrame(() => kitchen.classList.remove('zoom')));
+}
+
+/* ═══════════ ГРАФИК МОЛИТВЫ (до конференции 14 ноября) ═══════════ */
+const p2 = x => String(x).padStart(2, '0');
+const dayKey = d => d.getFullYear() + '-' + p2(d.getMonth() + 1) + '-' + p2(d.getDate());
+const fmtSlot = h => p2(h) + ':00–' + p2((h + 2) % 24) + ':00';
+const isSlotMine = s => !!s && s.owner_id === my.uid;
+let slots = [];        /* { id, day:'YYYY-MM-DD', slot_start:0..22, name, owner_id } */
+const dayEls = {};     /* key -> { card, grid, cov } */
+
+function calDaysArr() {
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const start = today > CAL_START ? new Date(today) : new Date(CAL_START);
+  const arr = [];
+  for (const d = start; d <= CONF_DAY; d.setDate(d.getDate() + 1)) arr.push(new Date(d));
+  return arr;
+}
+function isSlotPast(key, h) {
+  const now = new Date();
+  const end = new Date(+key.slice(0, 4), +key.slice(5, 7) - 1, +key.slice(8, 10), h + 2);
+  return end <= now;
+}
+function saveCalLocal() {
+  if (sb) return;
+  try { localStorage.setItem(LS_CAL_KEY, JSON.stringify(slots)); } catch (e) {}
+}
+const PRAYER_PREFIX = '[prayer:v2]';
+function isPrayer(n) { return typeof n.text === 'string' && n.text.startsWith(PRAYER_PREFIX); }
+function prayerData(n) { try { return JSON.parse(n.text.slice(PRAYER_PREFIX.length)); } catch (_) { return null; } }
+async function fetchCal() {
+  if (sb) {
+    const {data,error} = await sb.from('needs').select('*').like('text', PRAYER_PREFIX + '%');
+    if (error) throw error;
+    slots = data || [];
+  } else {
+    try { slots = JSON.parse(localStorage.getItem('fridge-prayer-v2') || '[]'); } catch (_) { slots = []; }
+  }
+  renderCalSlots();
+}
+function upsertSlot(row) {
+  if (!isPrayer(row)) return;
+  const i = slots.findIndex(x => x.id === row.id);
+  if (i >= 0) slots[i] = row; else slots.push(row);
+  renderCalSlots();
+}
+function buildCalendar() {
+  Object.keys(dayEls).forEach(k => delete dayEls[k]);
+  calDays.replaceChildren();
+  const days = calDaysArr();
+  $('prayerDay').min = days.length ? dayKey(days[0]) : dayKey(CONF_DAY);
+  $('prayerDay').max = dayKey(CONF_DAY);
+  $('prayerDay').value = days.length ? dayKey(days[0]) : '';
+  $('joinPrayer').disabled = !days.length;
+  if (!days.length) { calDays.textContent = 'Конференция уже прошла — спасибо всем, кто молился!'; return; }
+  days.forEach(d => {
+    const key = dayKey(d), card = document.createElement('div'); card.className = 'day';
+    const head = document.createElement('div'); head.className = 'dayHead';
+    const title = document.createElement('strong'); title.textContent = d.toLocaleDateString('ru-RU',{weekday:'long',day:'numeric',month:'long'});
+    const cov = document.createElement('span'); cov.className = 'cov'; head.append(title,cov);
+    const grid = document.createElement('div'); card.append(head,grid); calDays.append(card);
+    dayEls[key] = {card,grid,cov};
+  });
+}
+function renderCalSlots() {
+  Object.entries(dayEls).forEach(([key,g]) => {
+    g.grid.replaceChildren();
+    const rows = slots.map(row => ({row,d:prayerData(row)})).filter(x => x.d && x.d.d === key);
+    rows.sort((a,b) => (a.d.t || '').localeCompare(b.d.t || ''));
+    g.cov.textContent = rows.length + ' участн.';
+    if (!rows.length) { const p=document.createElement('div'); p.className='prayerEntry';p.textContent='Пока никто не записался. Можно стать первым.';g.grid.append(p); }
+    rows.forEach(({row,d}) => {
+      const el=document.createElement('div'); el.className='prayerEntry';
+      if (isMine(row)) { const btn=document.createElement('button');btn.type='button';btn.textContent='Отменить';btn.onclick=()=>deleteSlot(row.id);el.append(btn); }
+      const name=document.createElement('strong');name.textContent=row.author || 'Участник';
+      const desc=document.createElement('span');desc.textContent=d.m==='s' ? 'В течение дня · за сферу: '+d.s : d.t+' · '+d.n+' мин · за всю конференцию';
+      el.append(name,desc);g.grid.append(el);
+    });
+  });
+}
+async function submitPrayer(e) {
+  e.preventDefault();
+  const errorEl=$('prayerError');errorEl.textContent='';
+  const name=calName.value.trim(), day=$('prayerDay').value;
+  if (!name) { errorEl.textContent='Впиши своё имя.';calName.focus();return; }
+  const mode=document.querySelector('[name="prayerMode"]:checked').value;
+  const d={d:day,m:mode==='sphere'?'s':'t'};
+  if (day < dayKey(new Date()) || day > dayKey(CONF_DAY)) { errorEl.textContent='Выбери день от сегодняшнего до конференции.';return; }
+  if (mode==='sphere') { d.s=$('prayerSphere').value.trim();if(!d.s){errorEl.textContent='Укажи сферу молитвы.';return;} }
+  else {
+    d.t=$('prayerTime').value;d.n=Number($('prayerDuration').value);
+    if(!d.t || !Number.isInteger(d.n) || d.n<1 || d.n>1440){errorEl.textContent='Укажи время и длительность от 1 до 1440 минут.';return;}
+    if(new Date(day+'T'+d.t)<=new Date()){errorEl.textContent='Это время уже прошло. Выбери другое.';return;}
+  }
+  const text=PRAYER_PREFIX+JSON.stringify(d);
+  if(text.length>140){errorEl.textContent='Сократи название сферы.';return;}
+  const row={id:uid(),text,author:name,owner_id:my.uid,color:'#c9f0d8',rot:0,created_at:new Date().toISOString()};
+  const btn=$('joinPrayer');if(btn.disabled)return;btn.disabled=true;
+  try {
+    if(sb){const {error}=await sb.from('needs').insert(row);if(error)throw error;}
+    upsertSlot(row);
+    if(!sb)localStorage.setItem('fridge-prayer-v2',JSON.stringify(slots));
+    my.name=name;saveIdentity();toast('Ты в молитвенной команде 🙏');
+  }catch(err){errorEl.textContent='Не удалось сохранить: '+errHint(err);}
+  finally{btn.disabled=false;}
+}
+async function deleteSlot(id) {
+  const row=slots.find(x=>x.id===id);if(!row || !isMine(row))return;
+  if(sb){const {error}=await sb.from('needs').delete().eq('id',id);if(error){toast(errHint(error));return;}}
+  slots=slots.filter(x=>x.id!==id);renderCalSlots();
+  if(!sb)localStorage.setItem('fridge-prayer-v2',JSON.stringify(slots));
+  toast('Запись отменена');
+}
+function updateConfBadge() {
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const d = Math.round((CONF_DAY - today) / 864e5);
+  confBadge.textContent = d > 1 ? 'до конференции ' + d + ' дн.'
+                        : d === 1 ? 'конференция — завтра!'
+                        : d === 0 ? 'конференция — сегодня!'
+                        : 'конференция прошла';
+}
+function openCal()  { buildCalendar(); renderCalSlots(); updateConfBadge(); calWrap.classList.add('open'); calName.value = my.name || ''; }
+function closeCal() { calWrap.classList.remove('open'); }
+
+/* ── события ── */
+function wireEvents() {
+  enterBtn.addEventListener('click', enterKitchen);
+  backBtn.addEventListener('click', leaveKitchen);
+  addBtn.addEventListener('click', openModal);
+  chipSign.addEventListener('click', () => setSignMode(true));
+  chipAnon.addEventListener('click', () => setSignMode(false));
+  nameInput.addEventListener('input', () => nameInput.classList.remove('err'));
+  cancelBtn.addEventListener('click', closeModal);
+  modalWrap.addEventListener('click', e => { if (e.target === modalWrap) closeModal(); });
+  saveBtn.addEventListener('click', submitNeed);
+  needInput.addEventListener('input', () => {
+    charLeft.textContent = MAXLEN - needInput.value.length;
+    needInput.classList.remove('err');
+  });
+  needInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submitNeed(); }
+  });
+  document.addEventListener('keydown', e => {
+    if (e.key !== 'Escape') return;
+    if (modalWrap.classList.contains('open')) closeModal();
+    if (calWrap.classList.contains('open')) closeCal();
+  });
+  /* удалить можно только свою нужду — кнопка × есть лишь у своих магнитов */
+  wall.addEventListener('click', e => {
+    const b = e.target.closest('.del');
+    if (b && b.parentElement && b.parentElement.dataset.id) apiDelete(b.parentElement.dataset.id);
+  });
+
+  /* ── календарь молитвы ── */
+  calBtn.addEventListener('click', openCal);
+  calClose.addEventListener('click', closeCal);
+  calWrap.addEventListener('click', e => { if (e.target === calWrap) closeCal(); });
+  calName.addEventListener('input', () => calName.classList.remove('err'));
+  calName.addEventListener('change', () => {
+    const v = calName.value.trim();
+    if (v) { my.name = v; saveIdentity(); }
+  });
+  $('prayerForm').addEventListener('submit', submitPrayer);
+  document.querySelectorAll('[name="prayerMode"]').forEach(radio => radio.addEventListener('change', () => {
+    const sphere = document.querySelector('[name="prayerMode"]:checked').value === 'sphere';
+    $('sphereField').hidden = !sphere; $('timeFields').hidden = sphere;
+    $('prayerSphere').required = sphere; $('prayerTime').required = !sphere; $('prayerDuration').required = !sphere;
+    $('prayerHelp').textContent = sphere ? 'Вспоминай выбранную сферу в молитве в течение дня — без привязки к часам.' : 'Молись за всю конференцию столько, сколько тебе комфортно. Даже несколько минут важны.';
+    $('prayerError').textContent = '';
+  }));
+}
+
+/* ── запуск ── */
+async function init() {
+  buildSwatches();
+  wireEvents();
+
+  if (sb) {
+    setBadge(false);
+    modeBadge.querySelector('.t').textContent = 'подключаюсь…';
+  } else {
+    setBadge(false);
+  }
+
+  try {
+    const data = await fetchNeeds();
+    data.forEach((n, i) => renderAdd(n, Math.min(i * 45, 900)));  // каскад магнитов
+  } catch (e) {
+    console.error(e);
+    toast('Не удалось загрузить: ' + errHint(e));
+  }
+  const l = document.getElementById('loading');
+  if (l) l.remove();
+  updateCount();
+  subscribe();
+
+  buildCalendar();
+  updateConfBadge();
+  fetchCal().catch(e => {
+    console.warn(e);
+    toast('График молитвы: ' + errHint(e));
+  });
+
+  if (SUPABASE_URL && !sb) toast('Supabase SDK не загрузился — работает демо-режим');
+}
+init();
+</script>
+</body>
+</html>
